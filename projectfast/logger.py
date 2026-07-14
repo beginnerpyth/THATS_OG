@@ -1,18 +1,19 @@
 import logging
-def work(name:str):
+#we use logging because to track the history with developer and fastapi
+def ram(name:str):
+    #once we set the file to track and which level of security to choose wwe
     logger=logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)#in which level we need to set 
-    #once we set track and set the security level
+    logger.setLevel(logging.DEBUG)
+    #we need to set format in which patter we receive the data
     formate=logging.Formatter('%(asctime)s-%(name)s-%(levelname)s-%(message)s')
-    #once we set the format we need to do passs on terminal
-    doh=logging.StreamHandler()
-    doh.setFormatter(formate)#in which format we need to set 
-    #once we set the format we need to save the file
-    file_save=logging.FileHandler('mymemo.log')#it creates new log incase there isnot
-    file_save.setFormatter(formate)
-    #we need to make it connect to logger so evreything runs
-    logger.addHandler(doh)
-    logger.addHandler(file_save)
+    #once we set the setFormatter we need to set format for terminal and file
+    ter=logging.StreamHandler()
+    ter.setFormatter(formate)
+    #once we set for terminal we need to save in file
+    file_suv=logging.FileHandler('pap.log')
+    file_suv.setFormatter(formate)#in setFormatter we set the formate in which pattern we do
+    #now we need to execute
+    logger.addHandler(ter)#we addHandler where StreamHandler and FileHandler we can insert
+    logger.addHandler(file_suv)
 
     return logger
-
