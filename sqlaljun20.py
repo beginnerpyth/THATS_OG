@@ -3,7 +3,7 @@ from sqlalchemy.orm import declarative_base,relationship,sessionmaker,Session
 from  dotenv import load_dotenv 
 import os
 load_dotenv()
-engine=create_engine(os.getenv('DATABASE_URL'))
+engine=create_engine(os.getenv('database'))
 
 
 
@@ -104,20 +104,16 @@ for j in join_stat:
 
 
 # scalars example (fixed: .scalar() -> .scalars())
-select_stat2=mession.execute(select(shit)).scalars().all()
+select_stat2=mession.execute(select(shit.id)).scalars().all()
 print(select_stat2,'gogog')
 #jj = mession.execute(select(shit)).scalars().all()
 #print(jj)
 join_stat = mession.execute(select(shit).join(shit2, shit.id == shit2.pd)).scalars().all()
 for j in join_stat:
     print(j.id)          # j is a Row containing ONE shit object → looks like object repr
-jj = mession.execute(select(shit).where(shit.id==shit2.pd)).scalars().all()
-for bb in jj:
-    print(bb.id)
 
-for x in jj:
-  print(x.id, 'jjjjk')
-  result = mession.execute(select(shit)).scalars().all()#scalars juts there to unwrap the tuples 
+
+result = mession.execute(select(shit)).scalars().all()#scalars juts there to unwrap the tuples 
 for obj in result:
     print(obj.id, obj.name, obj.age)   # only real columns
 
@@ -128,4 +124,17 @@ print(mara)
 result = mession.execute(select(shit)).all()
 for row in result:
     print(row[0].id)#here we dont use scalars so it doenst unwrap and its same as tuple and we nned to unwrap tuple and get the attribute
+
+just_try=mession.execute(select(shit.id))
+for x in just_try.fetchall():
+    print(x)
+print(just_try)
+
+output=mession.execute(select(*shit.__table__.c)).all()
+
+jj = mession.execute(select(shit).where(shit.id==shit2.pd)).scalars().all()
+for bb in jj:
+    print(bb.id)
+for x in jj:
+  print(x.id, 'jjjjk')
 

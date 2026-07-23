@@ -1,0 +1,1 @@
+just string we use .write() and we use"w" for removing whole text and adding new textwe use writelines to add list of text like when we do readlines and writeline is like readline

@@ -1,6 +1,7 @@
 from passlib.context import CryptContext
 from jose import jwt,JWTError
 from datetime import datetime,timedelta
+from pouter.users import User,UserRole
 
 bbc=CryptContext(schemes=['bcrypt'],deprecated='auto')
 def hashpass(bass:str):
@@ -27,5 +28,16 @@ def err_ch(so:str):
         return bb
     except JWTError:
         return None
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=30)
+    to_encode.update({'exp': expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+# when creating token, include role
+token = create_access_token({
+    'sub': user.email,
+    'role': user.role  # add role here
+})
 
 

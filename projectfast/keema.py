@@ -14,7 +14,7 @@ class users_login(BaseModel):
     email:str
     password:str
 class users_verify(BaseModel):
-    acess_token:str
+    access_token:str
     token_type:str='bearer'
 
 

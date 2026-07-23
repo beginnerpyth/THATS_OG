@@ -1,10 +1,12 @@
 from fastapi import APIRouter,FastAPI,HTTPException
 from logger import ram
 import logging
-from keema import TodoCreate,TodoUpdate
+from keema import TodoCreate,TodoUpdate,users_login
+from projectfast.auth import create_access_token,hasverify
+from pouter.users import User
 app = FastAPI()
 purpur=logging.getLogger(__name__)
-pap=APIRouter(prefix='/podos',tags=['ekaima'])
+pap=APIRouter(prefix='/podos/',tags=['ekaima'])
 
 # Pydantic schema — defines shape of incoming data
 
@@ -63,3 +65,24 @@ def delete_todo(todo_id: int):
             return {'message': 'deleted'}
     purpur.warning(f'detail not found{todo_id}')
     raise HTTPException (status_code=404,detail='no data found as you requested')
+
+@pap.post('/login')
+def login(user_data: users_login db: Session = Depends(get_db)):
+    # fetch user from database
+    user = db.query(User).filter(User.email == user_data.email).first()
+    
+    # check if user exists
+    if not user:
+        raise HTTPException(status_code=401, detail='Invalid credentials')
+    
+    # check password
+    if not hasverify(user_data.password, user.password):
+        raise HTTPException(status_code=401, detail='Invalid credentials')
+    
+    # NOW we have the user object, so we can access user.email and user.role
+    token = create_access_token({
+        'sub': user.email,   # user comes from db.query above
+        'role': user.role    # user.role is the role column from database
+    })
+    
+    return {'access_token': token, 'token_type': 'bearer'}

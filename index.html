@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Lost & Found</title>
+<style>
+  body { font-family: sans-serif; max-width: 800px; margin: 30px auto; padding: 0 15px; background: #faf8f5; }
+  h1 { text-align: center; }
+  nav { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
+  nav button { padding: 8px 16px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 6px; }
+  nav button.active { background: #c0533b; color: white; border-color: #c0533b; }
+  section { display: none; }
+  section.active { display: block; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 14px; margin-bottom: 12px; background: #fff; }
+  .card h3 { margin: 0 0 6px; }
+  .card p { margin: 2px 0; font-size: 14px; color: #444; }
+  .card ul { margin: 6px 0; padding-left: 18px; font-size: 14px; }
+  .claim-btn { margin-top: 8px; padding: 6px 12px; background: #c0533b; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  form { display: flex; flex-direction: column; gap: 10px; background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #ddd; }
+  input, textarea, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+  button[type="submit"] { background: #c0533b; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+  .q-row { display: flex; gap: 8px; }
+  .q-row input { flex: 1; }
+  #api-base { width: 100%; margin-bottom: 20px; padding: 6px; }
+  .result { margin-top: 10px; padding: 10px; border-radius: 6px; }
+  .result.ok { background: #e3f5e1; color: #225522; }
+  .result.fail { background: #fae0e0; color: #7a2222; }
+  small { color: #888; }
+</style>
+</head>
+<body>
+
+<h1>🔍 Lost & Found</h1>
+<input id="api-base" value="http://127.0.0.1:8000" />
+
+<nav>
+  <button data-tab="browse-found" class="active">Found一覧</button>
+  <button data-tab="browse-lost">Lost一覧</button>
+  <button data-tab="post-lost">Lost投稿</button>
+  <button data-tab="post-found">Found投稿</button>
+  <button data-tab="claim">受け取る (Claim)</button>
+</nav>
+
+<section id="browse-found" class="active">
+  <h2>拾った人が投稿したアイテム</h2>
+  <button onclick="loadFound()">更新</button>
+  <div id="found-list"></div>
+</section>
+
+<section id="browse-lost">
+  <h2>失くした人が投稿したアイテム</h2>
+  <button onclick="loadLost()">更新</button>
+  <div id="lost-list"></div>
+</section>
+
+<section id="post-lost">
+  <h2>失くしたものを登録</h2>
+  <form id="lost-form">
+    <input name="item_name" placeholder="アイテム名 (例: カメラ)" required>
+    <textarea name="description" placeholder="詳細説明" required></textarea>
+    <input name="category" placeholder="カテゴリ (例: 電子機器)" required>
+    <input name="last_seen_location" placeholder="最後に見た場所" required>
+    <input name="contact_info" placeholder="連絡先 (メール/電話)" required>
+    <button type="submit">登録</button>
+  </form>
+  <div id="lost-result"></div>
+</section>
+
+<section id="post-found">
+  <h2>拾ったものを登録</h2>
+  <form id="found-form">
+    <input name="item_name" placeholder="アイテム名" required>
+    <textarea name="description" placeholder="詳細説明" required></textarea>
+    <input name="category" placeholder="カテゴリ" required>
+    <input name="found_location" placeholder="拾った場所" required>
+    <input name="contact_info" placeholder="あなたの連絡先 (正解した人にだけ表示されます)" required>
+
+    <label><strong>確認質問</strong>（持ち主だけが答えられる質問。相手にも表示されます。答えは表示されません）</label>
+    <div id="question-list">
+      <div class="q-row">
+        <input class="q-input" placeholder="質問 (例: 色は?)" required>
+        <input class="a-input" placeholder="正解" required>
+      </div>
+    </div>
+    <button type="button" onclick="addQuestionRow()">+ 質問を追加</button>
+
+    <label>写真 (任意)</label>
+    <input type="file" name="photo" accept="image/*">
+
+    <button type="submit">登録</button>
+  </form>
+  <div id="found-result"></div>
+</section>
+
+<section id="claim">
+  <h2>自分のものか確認する</h2>
+  <p><small>Found一覧 の「これは自分のものかも」ボタンから来ると自動入力されます</small></p>
+  <form id="claim-form">
+    <input name="found_item_id" type="number" placeholder="Found Item ID" required>
+    <input name="claimant_contact" placeholder="あなたの連絡先" required>
+    <select name="question" id="claim-question" required>
+      <option value="">-- 先に Found一覧 でアイテムを選んでください --</option>
+    </select>
+    <input name="answer" placeholder="答え" required>
+    <button type="submit">送信</button>
+  </form>
+  <div id="claim-result"></div>
+</section>
+
+<script>
+const apiBase = () => document.getElementById('api-base').value.replace(/\/$/, '');
+
+function switchTab(tabId) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelector(`nav button[data-tab="${tabId}"]`).classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+async function loadFound() {
+  const res = await fetch(`${apiBase()}/found/`);
+  const data = await res.json();
+  const el = document.getElementById('found-list');
+  el.innerHTML = data.length ? '' : '<p>まだ投稿がありません</p>';
+  data.forEach(item => {
+    const questions = item.questions || [];
+    const questionsHtml = questions.length
+      ? `<p><strong>確認質問:</strong></p><ul>${questions.map(q => `<li>${q}</li>`).join('')}</ul>`
+      : '';
+    el.innerHTML += `
+      <div class="card">
+        <h3>${item.item_name} <small>#${item.id}</small></h3>
+        <p>${item.description}</p>
+        <p>📍 ${item.found_location} ｜ 🏷 ${item.category}</p>
+        ${item.photo_url ? `<img src="${apiBase()}/${item.photo_url}" style="max-width:200px;border-radius:6px;">` : ''}
+        ${questionsHtml}
+        <button class="claim-btn" onclick='goToClaim(${item.id}, ${JSON.stringify(questions)})'>これは自分のものかも → 確認する</button>
+      </div>`;
+  });
+}
+
+function goToClaim(itemId, questions) {
+  switchTab('claim');
+  document.querySelector('#claim-form input[name="found_item_id"]').value = itemId;
+  const select = document.getElementById('claim-question');
+  select.innerHTML = questions.map(q => `<option value="${q}">${q}</option>`).join('');
+}
+
+async function loadLost() {
+  const res = await fetch(`${apiBase()}/lost/`);
+  const data = await res.json();
+  const el = document.getElementById('lost-list');
+  el.innerHTML = data.length ? '' : '<p>まだ投稿がありません</p>';
+  data.forEach(item => {
+    el.innerHTML += `
+      <div class="card">
+        <h3>${item.item_name} <small>#${item.id}</small></h3>
+        <p>${item.description}</p>
+        <p>📍 ${item.last_seen_location} ｜ 🏷 ${item.category}</p>
+      </div>`;
+  });
+}
+
+document.getElementById('lost-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const body = {
+    item_name: f.item_name.value,
+    description: f.description.value,
+    category: f.category.value,
+    last_seen_location: f.last_seen_location.value,
+    contact_info: f.contact_info.value
+  };
+  const res = await fetch(`${apiBase()}/lost/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const out = document.getElementById('lost-result');
+  if (res.ok) {
+    out.innerHTML = `<div class="result ok">登録できました！</div>`;
+    f.reset();
+  } else {
+    out.innerHTML = `<div class="result fail">エラーが発生しました</div>`;
+  }
+});
+
+function addQuestionRow() {
+  const list = document.getElementById('question-list');
+  const row = document.createElement('div');
+  row.className = 'q-row';
+  row.innerHTML = `
+    <input class="q-input" placeholder="質問" required>
+    <input class="a-input" placeholder="正解" required>`;
+  list.appendChild(row);
+}
+
+document.getElementById('found-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+
+  const questions = [];
+  document.querySelectorAll('#question-list .q-row').forEach(row => {
+    const q = row.querySelector('.q-input').value;
+    const a = row.querySelector('.a-input').value;
+    if (q && a) questions.push({ q, a });
+  });
+
+  const formData = new FormData();
+  formData.append('item_name', f.item_name.value);
+  formData.append('description', f.description.value);
+  formData.append('category', f.category.value);
+  formData.append('found_location', f.found_location.value);
+  formData.append('contact_info', f.contact_info.value);
+  formData.append('verification_questions', JSON.stringify(questions));
+  if (f.photo.files[0]) formData.append('photo', f.photo.files[0]);
+
+  const res = await fetch(`${apiBase()}/found/`, { method: 'POST', body: formData });
+  const out = document.getElementById('found-result');
+  if (res.ok) {
+    out.innerHTML = `<div class="result ok">登録できました！</div>`;
+    f.reset();
+    document.getElementById('question-list').innerHTML = `
+      <div class="q-row">
+        <input class="q-input" placeholder="質問 (例: 色は?)" required>
+        <input class="a-input" placeholder="正解" required>
+      </div>`;
+  } else {
+    out.innerHTML = `<div class="result fail">エラーが発生しました</div>`;
+  }
+});
+
+document.getElementById('claim-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const body = {
+    found_item_id: parseInt(f.found_item_id.value),
+    claimant_contact: f.claimant_contact.value,
+    submitted_answers: { [f.question.value]: f.answer.value }
+  };
+  const res = await fetch(`${apiBase()}/claims/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  const out = document.getElementById('claim-result');
+  if (data.verified) {
+    out.innerHTML = `<div class="result ok">✅ 正解！連絡先: ${data.contact_info}</div>`;
+  } else {
+    out.innerHTML = `<div class="result fail">❌ 不正解です</div>`;
+  }
+});
+
+loadFound();
+</script>
+</body>
+</html>

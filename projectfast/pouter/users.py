@@ -2,7 +2,45 @@ from auth import hashpass, hasverify, jwt_te, err_ch
 from keema import users_signup, users_login,users_verify  # Fixed imports
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import Column,String,Integer
+from sqlalchemy.orm import DeclarativeBase
+from enum import Enum
+# database.py
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+from dotenv import load_dotenv
+import os
 
+Base=DeclarativeBase
+load_dotenv()
+
+engine = create_engine(os.getenv('DATABASE_URL'))
+SessionLocal = sessionmaker(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+
+
+
+
+from enum import Enum
+
+class UserRole(str, Enum):
+    admin = 'admin'
+    user = 'user'
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True)
+    password = Column(String)
+    role = Column(String, default='user')  # default is regular user
 # 1. Router Setup
 bb = APIRouter(prefix='/train', tags=['/hibiya/'])
 nothing = OAuth2PasswordBearer(tokenUrl='/train/login')  # Removed trailing slash to match route
@@ -51,3 +89,4 @@ def get_current_login(token: str = Depends(nothing)):
 @bb.get('/me')  # FIXED: Added the mandatory '/me' path string here
 def okay(current_user: str = Depends(get_current_login)):
     return {'email': current_user, 'detail': 'logged in'}
+

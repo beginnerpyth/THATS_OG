@@ -1,0 +1,2 @@
+1,2
+"('abhishek', 'amir', 'samir', 'vrataa and when we use dictwriter or dictreader unlike csv.writer/readerwe dont use loop when we write and we have to mention storedfile.writeheader() and we need to give fieldnames and when we read we use loop and print(loop[header],loop[""header])')","('22', '27', '23', '25')"

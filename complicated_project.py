@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 #extraction
+print("BABA =", os.getenv("baba"))
 req=requests.get('https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,weather_code,pressure_msl,dew_point_2m,rain,showers,snowfall')
 #decoding from json to dicitonary
 dec_oding=req.json()
@@ -60,6 +61,7 @@ def temperature():
    see=session.execute(text("SELECT * FROM TEMPERATURE "))
    session.commit()
    return [dict(x._mapping)for x in see.fetchall()]
+
 
 
 

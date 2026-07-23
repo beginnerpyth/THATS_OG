@@ -58,8 +58,18 @@ def dasite():
 @bap.post('/情報を変えたい/')
 def puttin(lat:float,lon:float,generationtime_ms:float,elevation:float,hourly:datetime):
     kession.execute(text('select * from hack'))
+    fetch_data=kession.execute(text('select hourly from hack'))
+    if hourly in list(x[0] for x in fetch_data):
+        return 'its already here'
     kession.execute(text('insert into hack values(:lats,:lon,:generationtime_ms,:elevation,:hourly)'),{'lats':lat,'lon':lon,'generationtime_ms':generationtime_ms,'elevation':elevation,'hourly':hourly})
     kession.commit()
+
+#@bap.put('/to-update/')
+#def updating(lat:float,lon:float,generationtime_ms:float,elevation:float,hourly:datetime):
+#    letch_data=kession.execute(text('select hourly from hack'))
+#    if hourly in list(letch_data):
+#        kession.execute(text('update hack set '))
+
 
 
 
