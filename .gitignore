@@ -1,4 +1,13 @@
+<<<<<<< HEAD
 .env
 venv/
 __pycache__/
 .DS_Store
+=======
+# .gitignore
+.env
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+>>>>>>> 4d86f67c9f0fa6cef0635b46503ac87df0811a26

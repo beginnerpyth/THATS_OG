@@ -1,0 +1,6 @@
+2026-06-30 17:03:02,891-pouter.todos-INFO-fetching the data
+2026-06-30 18:03:20,525-root-INFO-GET /docs-200-0.000s
+2026-06-30 18:03:20,605-root-INFO-GET /openapi.json-200-0.009s
+2026-06-30 18:03:21,469-root-INFO-GET /-200-0.006s
+2026-06-30 18:03:23,612-root-INFO-GET /docs-200-0.000s
+2026-06-30 18:03:23,653-root-INFO-GET /openapi.json-200-0.001s

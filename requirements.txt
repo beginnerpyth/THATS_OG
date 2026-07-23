@@ -2,7 +2,16 @@ fastapi
 uvicorn
 sqlalchemy
 psycopg2-binary
+<<<<<<< HEAD
 pandas
 numpy
 requests
 python-dotenv
+=======
+pydantic
+python-dotenv
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+bcrypt==4.0.1
+>>>>>>> 4d86f67c9f0fa6cef0635b46503ac87df0811a26
