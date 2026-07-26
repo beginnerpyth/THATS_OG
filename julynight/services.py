@@ -23,11 +23,13 @@ class secondfloor():
             up_user['role']=role
             return up_user
     def create_user(self,name:str,id:int,role:str,email:str):
-        data=self.get_user_by_id(id)
-        if data:
-            raise HTTPException(detail='its already there')
+        for x in fake_users:
+            if id == x['id']:#i cannot use in cause its only on lists
+                #i didnt use is operator because that shows physical positiion where == means equal str or int
+                raise HTTPException(status_code=404,detail='its already there')
         baba={'name':name,'id':id,'role':role,'email':email}
         fake_users.append(baba)
+        return baba
 
 
 
