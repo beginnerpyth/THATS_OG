@@ -23,7 +23,8 @@ def file_uploads(file:UploadFile=File(...)):#we use[] instead of () because () c
     file_saver=f'filestorer/{file.filename}'
     with open (file_saver,'wb') as f:
         f.write(contents)
-        file_store.append(file.filename)
+        file_store.append(file.filename)#return is last command so it must be out of loop therefore we append
+        #the data containing the content variable where 
 
     return {'file_name':file.filename,'file_type':file.content_type,'filename':file_store}
     
