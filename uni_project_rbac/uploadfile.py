@@ -14,7 +14,7 @@ def upload_file(files:UploadFile=File(...)):
         return 'file size too large'
     file_location=f'uploads/{files.filename}'
     with open(file_location,'wb')as f:
-        f.read(inside_file)
+        f.write(inside_file)
         return {'message':'its sucessful','file_name':files.filename,'file_storage':total_storage}
 
 

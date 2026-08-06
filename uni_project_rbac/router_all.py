@@ -1,9 +1,10 @@
 from fastapi import FastAPI,HTTPException,APIRouter,Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from auth import token_decoder,token_creator,token_verifier
-from models import register_class
+from models import register_class,student_register,student_update
 from uploadfile import upload_file
 from fastapi import FastAPI,HTTPException,UploadFile,File,Depends
+from services import service
 
 
 router=APIRouter()
@@ -39,11 +40,20 @@ def course_register(id:int,class_schedule:register_class,teacher:str=Depends(tok
         return {'data saved':fake_database[id]}
 
 
+@router.get('/get_student_data')
+def student_data(id:int):
+     return service.get_id(id)
 
-    
+@router.post('/post_new_student')
+def student_post_data(student_post:student_register):
+     return service.post_id(student_post)
+@router.put('/change_student_data')
+def student_change_data(update_name:student_update):
+     return service.update_data(update_name)
 
 
 
+          
 
 
 
